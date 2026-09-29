@@ -268,9 +268,8 @@ def md_escape(text):
 
 
 def short_date(iso):
-    """2026-09-05 -> 9/5/26 (keeps the README table narrow on small screens)."""
-    d = date.fromisoformat(iso)
-    return f"{d.month}/{d.day}/{d.year % 100:02d}"
+    """2026-09-05 -> 260905 (keeps the README table narrow on small screens)."""
+    return date.fromisoformat(iso).strftime("%y%m%d")
 
 
 def write_readme(sites, state, failed):
