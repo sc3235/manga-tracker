@@ -12,7 +12,7 @@ Python script that checks a set of Japanese manga pages on a schedule and sends 
 ## Stack
 
 - Python 3.12, `requests`, `beautifulsoup4`, `feedparser`
-- Playwright only if manga-one requires it (avoid if an API/JSON route works)
+- No Playwright: manga-one works through its internal API (see Findings)
 - Notifications: `POST https://ntfy.sh/<topic>`; topic comes from env var `NTFY_TOPIC` (GitHub secret). Never hardcode it.
 
 ## Sites
@@ -22,11 +22,9 @@ Python script that checks a set of Japanese manga pages on a schedule and sends 
 | ひらやすみ | bigcomics.jp | RSS | https://bigcomics.jp/series/8082b80580bd3/rss |
 | ホストと社畜 | comic-action.com | RSS | https://comic-action.com/rss/series/2550689798598882943 |
 | 煙たい話 | comicnettai.com | HTML scrape; newest chapter listed first (e.g. "第49話 … 2026.09.04") | https://www.comicnettai.com/book/9 |
-| 天幕のジャードゥーガル | souffle.life | HTML scrape of series page (NOT a chapter page). Chapter URLs look like `/manga/tenmaku-no-ja-dougal/tenmaku045-20260925/`. Updates on the 25th monthly. Also check if WordPress exposes a feed. | https://souffle.life/author/tenmaku-no-ja-dougal/ |
+| 天幕のジャードゥーガル | souffle.life | RSS (WordPress author feed). Updates on the 25th monthly. | https://souffle.life/author/tenmaku-no-ja-dougal/feed/ |
 | 光が死んだ夏 | comic-walker.com | HTML scrape; episode list is server-rendered, newest first (e.g. "第49話-3", 2026/09/01). Episode IDs like `KC_0015710005000031_E`. | https://comic-walker.com/detail/KC_001571_S |
-| アフターゴッド | manga-one.com | HARD: Next.js, chapter list is not in plain HTML. Investigate in order: embedded JSON in page source → internal API calls (browser dev tools network tab) → Playwright as last resort. | https://manga-one.com/manga/1755 |
-
-Last confirmed chapter on manga-one: 第101話 (chapter id 353440).
+| アフターゴッド | manga-one.com | Internal protobuf API (see Findings). | https://manga-one.com/manga/1755 |
 
 ## Findings (2026-09-28)
 
@@ -34,11 +32,12 @@ Last confirmed chapter on manga-one: 第101話 (chapter id 353440).
 - comicnettai: viewer links carry an encrypted per-request `cid`, so change detection uses the content ID from the thumbnail path (`book_contents/<id>/`) and the notification links to the series page.
 - comic-walker: episode list is in `__NEXT_DATA__` (`latestEpisodes`). `updateDate` is unreliable (old episodes get re-dated), so the latest is picked by `internal.episodeNo`.
 - Status table: every normal run rewrites the table between `<!-- status:start/end -->` in `README.md` (series, latest chapter, release date in JST, next release). Next release comes from an optional `schedule` in `sites.json` (`{"day": 25}` or `{"weekday": "fri", "nth": 1}`), otherwise it's estimated as latest + median gap of recent releases (shown with `~`).
+- manga-one: the series page 404s without JS (client-rendered). The site's own API `https://manga-one.com/api/client?rq=viewer/chapter_list&title_id=1755&type=chapter&page=1&limit=8&sort_type=desc` works without login and returns protobuf, newest first; `decode_protobuf` in `tracker.py` reads it (response.1 = list, list.1 = chapters; chapter fields 1 id, 2 number, 3 subtitle, 5 date `YYYY/MM/DD`). Endpoint names come from the site's JS bundles (search `path:"` in `/_next/static/chunks/*.js`) if it ever changes.
 - ntfy: published as JSON to `https://ntfy.sh/` so Japanese titles aren't sent in HTTP headers.
 
 ## Conventions
 
-- One fetcher function per site type, registered by a `type` field in `sites.json` (`rss`, `comicnettai`, `souffle`, `comicwalker`, `mangaone`). Adding a site should mean editing `sites.json`, not core logic.
+- One fetcher function per site type, registered by a `type` field in `sites.json` (`rss`, `comicnettai`, `comicwalker`, `mangaone`). Adding a site should mean editing `sites.json`, not core logic.
 - Prefer stable identifiers (episode ID / URL) over display text for change detection.
 - Send a browser-like `User-Agent`, 20s timeouts, and a short delay between sites.
 - One site failing must not stop the others. Log the error and continue; do not overwrite that site's state on failure.
@@ -66,3 +65,5 @@ Last confirmed chapter on manga-one: 第101話 (chapter id 353440).
 3. ntfy notifications + state handling.
 4. GitHub Actions workflow.
 5. manga-one (investigate last).
+
+All steps done as of 2026-09-28.

@@ -128,10 +128,75 @@ def fetch_comicwalker(site):
     return chapter, dates
 
 
+def decode_protobuf(data):
+    """Minimal protobuf wire-format decoder: {field_number: [values]}.
+
+    Varints become ints; length-delimited fields stay bytes (decode nested
+    messages by calling this again).
+    """
+    def varint(i):
+        value = shift = 0
+        while True:
+            byte = data[i]
+            i += 1
+            value |= (byte & 0x7F) << shift
+            shift += 7
+            if byte < 0x80:
+                return value, i
+
+    fields, i = {}, 0
+    while i < len(data):
+        key, i = varint(i)
+        number, wire_type = key >> 3, key & 7
+        if wire_type == 0:
+            value, i = varint(i)
+        elif wire_type == 2:
+            length, i = varint(i)
+            value, i = data[i:i + length], i + length
+        elif wire_type == 1:
+            value, i = data[i:i + 8], i + 8
+        elif wire_type == 5:
+            value, i = data[i:i + 4], i + 4
+        else:
+            raise ValueError(f"unsupported protobuf wire type {wire_type}")
+        fields.setdefault(number, []).append(value)
+    return fields
+
+
+def fetch_mangaone(site):
+    # The series page is a client-rendered Next.js app (and 404s without JS).
+    # Its own API returns the chapter list as protobuf, newest first:
+    #   response.1 = list; list.1 = chapters
+    #   chapter: 1 = id, 2 = number ("第109話"), 3 = subtitle, 5 = date ("2026/09/09")
+    title_id = re.search(r"/manga/(\d+)", site["url"]).group(1)
+    resp = get(
+        "https://manga-one.com/api/client?rq=viewer/chapter_list"
+        f"&title_id={title_id}&type=chapter&page=1&limit={HISTORY_FOR_ESTIMATE}&sort_type=desc"
+    )
+    chapter_list = decode_protobuf(decode_protobuf(resp.content)[1][0])
+    chapters = [decode_protobuf(c) for c in chapter_list.get(1, [])]
+    if not chapters:
+        raise ValueError("empty chapter list")
+
+    def text(fields, number):
+        return fields.get(number, [b""])[0].decode("utf-8")
+
+    dates = [text(c, 5).replace("/", "-") for c in chapters if text(c, 5)]
+    latest = chapters[0]
+    chapter_id = latest[1][0]
+    return {
+        "id": str(chapter_id),
+        "title": f"{text(latest, 2)} {text(latest, 3)}".strip(),
+        "url": f"https://manga-one.com/manga/{title_id}/chapter/{chapter_id}",
+        "date": dates[0] if dates else None,
+    }, dates
+
+
 FETCHERS = {
     "rss": fetch_rss,
     "comicnettai": fetch_comicnettai,
     "comicwalker": fetch_comicwalker,
+    "mangaone": fetch_mangaone,
 }
 
 
