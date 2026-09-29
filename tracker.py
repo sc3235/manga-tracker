@@ -267,6 +267,12 @@ def md_escape(text):
     return text.replace("|", "\\|").replace("[", "\\[").replace("]", "\\]")
 
 
+def short_date(iso):
+    """2026-09-05 -> 9/5 (keeps the README table narrow on small screens)."""
+    d = date.fromisoformat(iso)
+    return f"{d.month}/{d.day}"
+
+
 def write_readme(sites, state, failed):
     """Rewrite the status table between the markers in README.md."""
     today = datetime.now(JST).date().isoformat()
@@ -288,20 +294,21 @@ def write_readme(sites, state, failed):
         if chapter is None:
             rows.append(f"| {name} | — | — | — |")
             continue
-        latest = f"[{md_escape(chapter['title'])}]({chapter['url']})"
-        nxt = chapter.get("next") or "—"
+        title = chapter["title"].replace(site["name"], "").strip() or chapter["title"]
+        latest = f"[{md_escape(title)}]({chapter['url']})"
+        released = short_date(chapter["date"]) if chapter.get("date") else "—"
+        nxt = "—"
         if chapter.get("next"):
-            if chapter.get("next_is_estimate"):
-                nxt = "~" + nxt
+            nxt = ("~" if chapter.get("next_is_estimate") else "") + short_date(chapter["next"])
             if chapter["next"] < today:
-                nxt += " (overdue)"
-        rows.append(f"| {name} | {latest} | {chapter.get('date') or '—'} | {nxt} |")
+                nxt += "\u00a0⏰"  # non-breaking space keeps it on one line
+        rows.append(f"| {name} | {latest} | {released} | {nxt} |")
 
     checked = datetime.now(DISPLAY_TZ).strftime("%Y-%m-%d %H:%M %Z")
     notes = [
         "",
         f"_Last checked: {checked}. Dates are JST. "
-        "`~` = estimated from recent release gaps; ⚠️ = check failed this run._",
+        "`~` = estimated from recent release gaps; ⏰ = overdue; ⚠️ = check failed this run._",
     ]
     table = "\n".join(rows + notes)
 
