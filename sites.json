@@ -12,12 +12,19 @@
   "kemutai-hanashi": {
     "name": "煙たい話",
     "type": "comicnettai",
-    "url": "https://www.comicnettai.com/book/9"
+    "url": "https://www.comicnettai.com/book/9",
+    "schedule": {
+      "weekday": "fri",
+      "nth": 1
+    }
   },
   "tenmaku": {
     "name": "天幕のジャードゥーガル",
     "type": "rss",
-    "url": "https://souffle.life/author/tenmaku-no-ja-dougal/feed/"
+    "url": "https://souffle.life/author/tenmaku-no-ja-dougal/feed/",
+    "schedule": {
+      "day": 25
+    }
   },
   "hikaru-ga-shinda-natsu": {
     "name": "光が死んだ夏",

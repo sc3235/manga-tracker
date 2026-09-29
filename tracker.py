@@ -1,12 +1,16 @@
 """Check manga sites for new chapters and notify via ntfy."""
 
 import argparse
+import calendar
 import json
 import os
 import re
+import statistics
 import sys
 import time
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import feedparser
 import requests
@@ -15,6 +19,7 @@ from bs4 import BeautifulSoup
 ROOT = Path(__file__).parent
 SITES_FILE = ROOT / "sites.json"
 STATE_FILE = ROOT / "state.json"
+README_FILE = ROOT / "README.md"
 
 HEADERS = {
     "User-Agent": (
@@ -25,6 +30,9 @@ HEADERS = {
 }
 TIMEOUT = 20
 DELAY_BETWEEN_SITES = 2
+JST = ZoneInfo("Asia/Tokyo")
+DISPLAY_TZ = ZoneInfo("America/New_York")  # for "Last checked" in the README
+HISTORY_FOR_ESTIMATE = 8  # recent release dates used to estimate the next one
 
 
 def get(url):
@@ -33,7 +41,14 @@ def get(url):
     return resp
 
 
-# --- Fetchers: each returns {"id", "title", "url"} for the latest chapter ---
+def to_jst_date(dt):
+    """ISO date (JST) for an aware datetime."""
+    return dt.astimezone(JST).date().isoformat()
+
+
+# --- Fetchers ---
+# Each returns (chapter, history): chapter is {"id", "title", "url", "date"}
+# for the latest chapter; history is recent release dates (ISO), newest first.
 
 
 def fetch_rss(site):
@@ -41,14 +56,21 @@ def fetch_rss(site):
     if not feed.entries:
         raise ValueError("feed has no entries")
     entries = feed.entries
-    if all(e.get("published_parsed") for e in entries):
+    dated = all(e.get("published_parsed") for e in entries)
+    if dated:
         entries = sorted(entries, key=lambda e: e.published_parsed, reverse=True)
+    dates = [
+        to_jst_date(datetime(*e.published_parsed[:6], tzinfo=timezone.utc))
+        for e in entries
+    ] if dated else []
     latest = entries[0]
-    return {
+    chapter = {
         "id": latest.get("id") or latest.link,
         "title": latest.title,
         "url": latest.link.split("?")[0],
+        "date": dates[0] if dates else None,
     }
+    return chapter, dates
 
 
 def fetch_comicnettai(site):
@@ -56,23 +78,31 @@ def fetch_comicnettai(site):
     # per-request token, so use the content ID from the thumbnail path instead
     # and link the notification to the series page.
     soup = BeautifulSoup(get(site["url"]).text, "html.parser")
-    item = soup.select_one("a.detail--product__item")
-    if item is None:
+    items = soup.select("a.detail--product__item")
+    if not items:
         raise ValueError("no chapter items found")
+    dates = []
+    for item in items:
+        sdate = item.select_one(".detail--product__item__sdate")
+        if sdate:
+            dates.append(sdate.get_text(strip=True).replace(".", "-"))  # 2026.09.04
+    item = items[0]
     title = item.select_one(".detail--product__item__title").get_text(strip=True)
     img = item.select_one("img")
     match = re.search(r"/book_contents/(\d+)/", img.get("data-src", "") if img else "")
-    return {
+    chapter = {
         "id": match.group(1) if match else title,
         "title": title,
         "url": site["url"],
+        "date": dates[0] if dates else None,
     }
+    return chapter, dates
 
 
 def fetch_comicwalker(site):
     # Next.js page; the episode list is in the embedded __NEXT_DATA__ JSON.
-    # updateDate is unreliable (old episodes get re-dated), so pick the
-    # highest episode number.
+    # updateDate is unreliable for old episodes (they get re-dated), so order
+    # by episode number and only use the newest ones' dates.
     soup = BeautifulSoup(get(site["url"]).text, "html.parser")
     data = json.loads(soup.find("script", id="__NEXT_DATA__").string)
     episodes = []
@@ -82,13 +112,20 @@ def fetch_comicwalker(site):
             episodes = [e for e in q["latestEpisodes"]["result"] if e.get("isActive")]
     if not episodes:
         raise ValueError("no episodes found in __NEXT_DATA__")
-    latest = max(episodes, key=lambda e: e["internal"]["episodeNo"])
+    episodes.sort(key=lambda e: e["internal"]["episodeNo"], reverse=True)
+    dates = [
+        to_jst_date(datetime.fromisoformat(e["updateDate"].replace("Z", "+00:00")))
+        for e in episodes[:HISTORY_FOR_ESTIMATE]
+    ]
+    latest = episodes[0]
     work_code = site["url"].rstrip("/").rsplit("/", 1)[-1]
-    return {
+    chapter = {
         "id": latest["code"],
         "title": latest["title"],
         "url": f"https://comic-walker.com/detail/{work_code}/episodes/{latest['code']}",
+        "date": dates[0],
     }
+    return chapter, dates
 
 
 FETCHERS = {
@@ -98,7 +135,55 @@ FETCHERS = {
 }
 
 
-# --- State and notifications ---
+# --- Next-release estimate ---
+
+WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+
+
+def next_month(d):
+    return (d.year + d.month // 12, d.month % 12 + 1)
+
+
+def nth_weekday(year, month, weekday, n):
+    first = date(year, month, 1)
+    return first + timedelta(days=(weekday - first.weekday()) % 7 + 7 * (n - 1))
+
+
+def estimate_next(site, history):
+    """Return (ISO date, is_estimate) for the next release, or (None, False).
+
+    sites.json can set a fixed "schedule":
+      {"day": 25}                   -> the 25th of each month
+      {"weekday": "fri", "nth": 1}  -> first Friday of each month
+    Otherwise: latest date + median gap between recent releases.
+    """
+    if not history:
+        return None, False
+    last = date.fromisoformat(history[0])
+    schedule = site.get("schedule")
+
+    if schedule:
+        year, month = last.year, last.month
+        for _ in range(3):
+            if "day" in schedule:
+                day = min(schedule["day"], calendar.monthrange(year, month)[1])
+                candidate = date(year, month, day)
+            else:
+                weekday = WEEKDAYS.index(schedule["weekday"])
+                candidate = nth_weekday(year, month, weekday, schedule.get("nth", 1))
+            if candidate > last:
+                return candidate.isoformat(), False
+            year, month = next_month(date(year, month, 1))
+        return None, False
+
+    dates = sorted({date.fromisoformat(d) for d in history[:HISTORY_FOR_ESTIMATE]}, reverse=True)
+    gaps = [(a - b).days for a, b in zip(dates, dates[1:])]
+    if len(gaps) < 2:
+        return None, False
+    return (last + timedelta(days=round(statistics.median(gaps)))).isoformat(), True
+
+
+# --- State, README and notifications ---
 
 
 def load_json(path, default):
@@ -111,6 +196,46 @@ def save_state(state):
     STATE_FILE.write_text(
         json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
+
+
+def md_escape(text):
+    return text.replace("|", "\\|").replace("[", "\\[").replace("]", "\\]")
+
+
+def write_readme(sites, state, failed):
+    """Rewrite the status table between the markers in README.md."""
+    today = datetime.now(JST).date().isoformat()
+    rows = ["| Series | Latest | Released | Next |", "|---|---|---|---|"]
+    for key, site in sites.items():
+        name = md_escape(site["name"])
+        if key in failed:
+            name += " ⚠️"
+        chapter = state.get(key)
+        if chapter is None:
+            rows.append(f"| {name} | — | — | — |")
+            continue
+        latest = f"[{md_escape(chapter['title'])}]({chapter['url']})"
+        nxt = chapter.get("next") or "—"
+        if chapter.get("next"):
+            if chapter.get("next_is_estimate"):
+                nxt = "~" + nxt
+            if chapter["next"] < today:
+                nxt += " (overdue)"
+        rows.append(f"| {name} | {latest} | {chapter.get('date') or '—'} | {nxt} |")
+
+    checked = datetime.now(DISPLAY_TZ).strftime("%Y-%m-%d %H:%M %Z")
+    notes = [
+        "",
+        f"_Last checked: {checked}. Dates are JST. "
+        "`~` = estimated from recent release gaps; ⚠️ = check failed this run._",
+    ]
+    table = "\n".join(rows + notes)
+
+    start, end = "<!-- status:start -->", "<!-- status:end -->"
+    text = README_FILE.read_text(encoding="utf-8") if README_FILE.exists() else f"{start}\n{end}\n"
+    before, rest = text.split(start, 1)
+    _, after = rest.split(end, 1)
+    README_FILE.write_text(f"{before}{start}\n{table}\n{end}{after}", encoding="utf-8")
 
 
 def notify(topic, series, chapter):
@@ -133,35 +258,39 @@ def notify(topic, series, chapter):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true",
-                        help="print latest chapters; no notifications or state writes")
+                        help="print latest chapters; no notifications or file writes")
     parser.add_argument("--only", metavar="SITE_KEY", help="check a single site")
     args = parser.parse_args()
 
-    sites = load_json(SITES_FILE, {})
+    all_sites = load_json(SITES_FILE, {})
+    sites = all_sites
     if args.only:
-        if args.only not in sites:
-            sys.exit(f"unknown site key: {args.only} (known: {', '.join(sites)})")
-        sites = {args.only: sites[args.only]}
+        if args.only not in all_sites:
+            sys.exit(f"unknown site key: {args.only} (known: {', '.join(all_sites)})")
+        sites = {args.only: all_sites[args.only]}
 
     topic = os.environ.get("NTFY_TOPIC")
     if not args.dry_run and not topic:
         sys.exit("NTFY_TOPIC is not set (use --dry-run to test without it)")
 
     state = load_json(STATE_FILE, {})
-    failures = 0
+    failed = set()
 
     for i, (key, site) in enumerate(sites.items()):
         if i:
             time.sleep(DELAY_BETWEEN_SITES)
         try:
-            chapter = FETCHERS[site["type"]](site)
+            chapter, history = FETCHERS[site["type"]](site)
         except Exception as e:
-            failures += 1
+            failed.add(key)
             print(f"[{key}] ERROR: {e!r}", file=sys.stderr)
             continue
+        chapter["next"], chapter["next_is_estimate"] = estimate_next(site, history)
 
         if args.dry_run:
-            print(f"[{key}] {site['name']}: {chapter['title']}\n    id={chapter['id']}\n    {chapter['url']}")
+            nxt = ("~" if chapter["next_is_estimate"] else "") + str(chapter["next"])
+            print(f"[{key}] {site['name']}: {chapter['title']}  (released {chapter['date']}, next {nxt})"
+                  f"\n    id={chapter['id']}\n    {chapter['url']}")
             continue
 
         previous = state.get(key)
@@ -172,7 +301,7 @@ def main():
             try:
                 notify(topic, site["name"], chapter)
             except Exception as e:
-                failures += 1
+                failed.add(key)
                 print(f"[{key}] notify failed, will retry next run: {e!r}", file=sys.stderr)
                 continue
         else:
@@ -181,8 +310,9 @@ def main():
 
     if not args.dry_run:
         save_state(state)
+        write_readme(all_sites, state, failed)
 
-    if failures == len(sites) and sites:
+    if sites and len(failed) == len(sites):
         sys.exit(1)
 
 

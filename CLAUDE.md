@@ -33,6 +33,7 @@ Last confirmed chapter on manga-one: 第101話 (chapter id 353440).
 - souffle: WordPress author feed `https://souffle.life/author/tenmaku-no-ja-dougal/feed/` works and lists only chapters, so it uses the `rss` type (no `souffle` scraper needed).
 - comicnettai: viewer links carry an encrypted per-request `cid`, so change detection uses the content ID from the thumbnail path (`book_contents/<id>/`) and the notification links to the series page.
 - comic-walker: episode list is in `__NEXT_DATA__` (`latestEpisodes`). `updateDate` is unreliable (old episodes get re-dated), so the latest is picked by `internal.episodeNo`.
+- Status table: every normal run rewrites the table between `<!-- status:start/end -->` in `README.md` (series, latest chapter, release date in JST, next release). Next release comes from an optional `schedule` in `sites.json` (`{"day": 25}` or `{"weekday": "fri", "nth": 1}`), otherwise it's estimated as latest + median gap of recent releases (shown with `~`).
 - ntfy: published as JSON to `https://ntfy.sh/` so Japanese titles aren't sent in HTTP headers.
 
 ## Conventions
@@ -54,7 +55,7 @@ Last confirmed chapter on manga-one: 第101話 (chapter id 353440).
 ## GitHub Actions
 
 - `.github/workflows/check.yml` ("Check chapters"), cron twice daily at 10:00/22:00 UTC = 6am/6pm New York (5am/5pm in winter), plus `workflow_dispatch`.
-- `permissions: contents: write`; commit `state.json` only when it changed.
+- `permissions: contents: write`; commit `state.json` and `README.md` only when they changed.
 - `NTFY_TOPIC` from repository secrets.
 - Known risks: scheduled runs can be delayed; GitHub disables schedules after 60 days of no repo activity (state commits usually prevent this); some sites may block GitHub runner IPs. If a site blocks, note it in this file.
 

@@ -31,12 +31,12 @@ jobs:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
         run: python tracker.py
 
-      - name: Commit state if changed
+      - name: Commit state and README if changed
         run: |
-          if [ -n "$(git status --porcelain state.json)" ]; then
+          if [ -n "$(git status --porcelain state.json README.md)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
-            git add state.json
+            git add state.json README.md
             git commit -m "Update state"
             git push
           else

@@ -2,26 +2,41 @@
   "hirayasumi": {
     "id": "4cf51cab632a5",
     "title": "101日目 日記",
-    "url": "https://bigcomics.jp/episodes/4cf51cab632a5/"
+    "url": "https://bigcomics.jp/episodes/4cf51cab632a5/",
+    "date": "2026-09-07",
+    "next": "2026-10-05",
+    "next_is_estimate": true
   },
   "host-to-shachiku": {
     "id": "action:episode:12207421984213076728",
     "title": "第53話 姫とホスト",
-    "url": "https://comic-action.com/episode/12207421984213076728"
+    "url": "https://comic-action.com/episode/12207421984213076728",
+    "date": "2026-09-15",
+    "next": "2026-09-29",
+    "next_is_estimate": true
   },
   "kemutai-hanashi": {
     "id": "1033",
     "title": "第49話",
-    "url": "https://www.comicnettai.com/book/9"
+    "url": "https://www.comicnettai.com/book/9",
+    "date": "2026-09-04",
+    "next": "2026-10-02",
+    "next_is_estimate": false
   },
   "tenmaku": {
     "id": "https://souffle.life/?p=98479",
     "title": "#45 天幕のジャードゥーガル",
-    "url": "https://souffle.life/manga/tenmaku-no-ja-dougal/tenmaku045-20260925/"
+    "url": "https://souffle.life/manga/tenmaku-no-ja-dougal/tenmaku045-20260925/",
+    "date": "2026-09-25",
+    "next": "2026-10-25",
+    "next_is_estimate": false
   },
   "hikaru-ga-shinda-natsu": {
     "id": "KC_0015710005000031_E",
     "title": "第49話-3",
-    "url": "https://comic-walker.com/detail/KC_001571_S/episodes/KC_0015710005000031_E"
+    "url": "https://comic-walker.com/detail/KC_001571_S/episodes/KC_0015710005000031_E",
+    "date": "2026-09-01",
+    "next": "2026-09-08",
+    "next_is_estimate": true
   }
 }
