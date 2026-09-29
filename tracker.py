@@ -298,16 +298,21 @@ def write_readme(sites, state, failed):
         released = short_date(chapter["date"]) if chapter.get("date") else "—"
         nxt = "—"
         if chapter.get("next"):
-            nxt = ("~" if chapter.get("next_is_estimate") else "") + short_date(chapter["next"])
             if chapter["next"] < today:
-                nxt += "\u00a0⏰"  # non-breaking space keeps it on one line
+                marker = "🔴"
+            elif chapter.get("next_is_estimate"):
+                marker = "🟡"
+            else:
+                marker = "🟢"
+            # Non-breaking space keeps the date and marker on one line.
+            nxt = f"{short_date(chapter['next'])}\u00a0{marker}"
         rows.append(f"| {name} | {latest} | {released} | {nxt} |")
 
     checked = datetime.now(DISPLAY_TZ).strftime("%Y-%m-%d %H:%M %Z")
     notes = [
         "",
-        f"_Last checked: {checked}. Dates are JST. "
-        "`~` = estimated from recent release gaps; ⏰ = overdue; ⚠️ = check failed this run._",
+        f"_Last checked: {checked}. Dates are JST. Next: 🟢 = fixed schedule; "
+        "🟡 = estimated from recent release gaps; 🔴 = overdue. ⚠️ = check failed this run._",
     ]
     table = "\n".join(rows + notes)
 
