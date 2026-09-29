@@ -205,8 +205,17 @@ def md_escape(text):
 def write_readme(sites, state, failed):
     """Rewrite the status table between the markers in README.md."""
     today = datetime.now(JST).date().isoformat()
-    rows = ["| Series | Latest | Released | Next |", "|---|---|---|---|"]
-    for key, site in sites.items():
+    rows = ["| Series | Last | Released | Next |", "|---|---|---|---|"]
+
+    def sort_key(key):
+        # Upcoming by date, then unknown, then overdue at the bottom.
+        nxt = (state.get(key) or {}).get("next")
+        if nxt is None:
+            return (1, "")
+        return (2 if nxt < today else 0, nxt)
+
+    for key in sorted(sites, key=sort_key):
+        site = sites[key]
         name = md_escape(site["name"])
         if key in failed:
             name += " ⚠️"
