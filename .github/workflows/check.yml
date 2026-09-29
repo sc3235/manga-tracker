@@ -2,7 +2,7 @@ name: Check chapters
 
 on:
   schedule:
-    - cron: "0 11 * * *"  # daily 11:00 UTC = 7:00 New York (EDT), 6:00 in winter (EST)
+    - cron: "0 10,22 * * *"  # 10:00/22:00 UTC = 6am/6pm New York (EDT), 5am/5pm in winter (EST)
   workflow_dispatch:
 
 permissions:

@@ -53,7 +53,7 @@ Last confirmed chapter on manga-one: 第101話 (chapter id 353440).
 
 ## GitHub Actions
 
-- `.github/workflows/check.yml` ("Check chapters"), cron daily at 11:00 UTC = 7am New York (6am in winter), plus `workflow_dispatch`.
+- `.github/workflows/check.yml` ("Check chapters"), cron twice daily at 10:00/22:00 UTC = 6am/6pm New York (5am/5pm in winter), plus `workflow_dispatch`.
 - `permissions: contents: write`; commit `state.json` only when it changed.
 - `NTFY_TOPIC` from repository secrets.
 - Known risks: scheduled runs can be delayed; GitHub disables schedules after 60 days of no repo activity (state commits usually prevent this); some sites may block GitHub runner IPs. If a site blocks, note it in this file.
