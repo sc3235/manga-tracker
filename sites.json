@@ -1,0 +1,27 @@
+{
+  "hirayasumi": {
+    "name": "ひらやすみ",
+    "type": "rss",
+    "url": "https://bigcomics.jp/series/8082b80580bd3/rss"
+  },
+  "host-to-shachiku": {
+    "name": "ホストと社畜",
+    "type": "rss",
+    "url": "https://comic-action.com/rss/series/2550689798598882943"
+  },
+  "kemutai-hanashi": {
+    "name": "煙たい話",
+    "type": "comicnettai",
+    "url": "https://www.comicnettai.com/book/9"
+  },
+  "tenmaku": {
+    "name": "天幕のジャードゥーガル",
+    "type": "rss",
+    "url": "https://souffle.life/author/tenmaku-no-ja-dougal/feed/"
+  },
+  "hikaru-ga-shinda-natsu": {
+    "name": "光が死んだ夏",
+    "type": "comicwalker",
+    "url": "https://comic-walker.com/detail/KC_001571_S"
+  }
+}
