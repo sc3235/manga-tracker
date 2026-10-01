@@ -12,5 +12,5 @@ Checks these series twice a day and sends an ntfy notification when a new chapte
 | アフターゴッド | [第109話 人間](https://manga-one.com/manga/1755/chapter/358291) | 260909 | 260923 🔴 |
 | ホストと社畜 | [第53話 姫とホスト](https://comic-action.com/episode/12207421984213076728) | 260915 | 260929 🔴 |
 
-_Last checked: 2026-09-30 12:26 EDT. Dates are JST. Next: 🟢 = fixed schedule; 🟡 = estimated from recent release gaps; 🔴 = overdue. ⚠️ = check failed this run._
+_Last checked: 2026-09-30 21:19 EDT. Dates are JST. Next: 🟢 = fixed schedule; 🟡 = estimated from recent release gaps; 🔴 = overdue. ⚠️ = check failed this run._
 <!-- status:end -->
