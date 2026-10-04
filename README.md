@@ -12,5 +12,5 @@ Checks these series twice a day and sends an ntfy notification when a new chapte
 | ホストと社畜 | [第53話 姫とホスト](https://comic-action.com/episode/12207421984213076728) | 260915 | 260929 🔴 |
 | 煙たい話 | [第49話](https://www.comicnettai.com/book/9) | 260904 | 261002 🔴 |
 
-_Last checked: 2026-10-03 10:45 EDT. Dates are JST. Next: 🟢 = fixed schedule; 🟡 = estimated from recent release gaps; 🔴 = overdue. ⚠️ = check failed this run._
+_Last checked: 2026-10-03 20:43 EDT. Dates are JST. Next: 🟢 = fixed schedule; 🟡 = estimated from recent release gaps; 🔴 = overdue. ⚠️ = check failed this run._
 <!-- status:end -->
