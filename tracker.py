@@ -222,12 +222,20 @@ def estimate_next(site, history):
     sites.json can set a fixed "schedule":
       {"day": 25}                   -> the 25th of each month
       {"weekday": "fri", "nth": 1}  -> first Friday of each month
+      {"dates": ["2026-10-13"]}     -> announced dates; once all have passed,
+                                       falls back to the estimate below
     Otherwise: latest date + median gap between recent releases.
     """
     if not history:
         return None, False
     last = date.fromisoformat(history[0])
     schedule = site.get("schedule")
+
+    if schedule and "dates" in schedule:
+        upcoming = sorted(d for d in schedule["dates"] if date.fromisoformat(d) > last)
+        if upcoming:
+            return upcoming[0], False
+        schedule = None
 
     if schedule:
         year, month = last.year, last.month
@@ -281,18 +289,29 @@ def is_overdue(chapter, today):
     return date.fromisoformat(nxt) + timedelta(days=OVERDUE_GRACE_DAYS) < today
 
 
+def is_completed(site, chapter):
+    """Finished once a chapter released on or after the site's "final" date has been seen."""
+    final = site.get("final")
+    released = (chapter or {}).get("date")
+    return bool(final and released and released >= final)
+
+
 def write_readme(sites, state, failed):
     """Rewrite the status table between the markers in README.md."""
     today = datetime.now(JST).date()
     # HTML rather than a Markdown table so the overdue divider can span all columns.
     rows = ["<table>", "<tr>" + "".join(f'<th align="left">{h}</th>' for h in ["Series", "Last", "Released", "Next"]) + "</tr>"]
 
+    def status(key):
+        if is_completed(sites[key], state.get(key)):
+            return "completed"
+        return "late" if is_overdue(state.get(key), today) else "on schedule"
+
     def sort_key(key):
-        # Upcoming by date, then unknown, then overdue at the bottom.
+        # Upcoming by date, then unknown, then overdue, then completed at the bottom.
+        group = ["on schedule", "late", "completed"].index(status(key))
         nxt = (state.get(key) or {}).get("next")
-        if nxt is None:
-            return (1, "")
-        return (2 if is_overdue(state[key], today) else 0, nxt)
+        return (group, nxt is None, nxt or "")
 
     def divider(label):
         return f'<tr><td colspan="4" align="center"><sub>{label}</sub></td></tr>'
@@ -304,10 +323,10 @@ def write_readme(sites, state, failed):
         if key in failed:
             name += " ⚠️"
         chapter = state.get(key)
-        late = is_overdue(chapter, today)
-        if late != group:
-            rows.append(divider("over a week late" if late else "on schedule"))
-            group = late
+        if status(key) != group:
+            group = status(key)
+            labels = {"late": "over a week late", "completed": "completed: remove from sites.json"}
+            rows.append(divider(labels.get(group, group)))
         if chapter is None:
             rows.append(f"<tr><td>{name}</td><td>—</td><td>—</td><td>—</td></tr>")
             continue
@@ -315,7 +334,9 @@ def write_readme(sites, state, failed):
         latest = f'<a href="{html.escape(chapter["url"])}">{html.escape(title)}</a>'
         released = short_date(chapter["date"]) if chapter.get("date") else "—"
         nxt = "—"
-        if chapter.get("next"):
+        if group == "completed":
+            nxt = "✅"
+        elif chapter.get("next"):
             if is_overdue(chapter, today):
                 marker = "🔴"
             elif chapter.get("next_is_estimate"):
@@ -331,7 +352,7 @@ def write_readme(sites, state, failed):
     notes = [
         "",
         f"_Last checked: {checked}. Dates are JST. Next: 🟢 = fixed schedule; "
-        "🟡 = estimated from recent release gaps; 🔴 = over a week overdue. ⚠️ = check failed this run._",
+        "🟡 = estimated from recent release gaps; 🔴 = over a week overdue; ✅ = series finished. ⚠️ = check failed this run._",
     ]
     table = "\n".join(rows + notes)
 
