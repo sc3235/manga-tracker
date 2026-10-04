@@ -2,7 +2,7 @@ name: Check chapters
 
 on:
   schedule:
-    - cron: "23 10,22 * * *"  # 10:23/22:23 UTC = ~6:23am/6:23pm New York (EDT), 5:23am/5:23pm in winter (EST)
+    - cron: "23 5,19 * * *"  # 05:23/19:23 UTC = 1:23am/3:23pm New York (EDT), 12:23am/2:23pm in winter (EST); GitHub usually starts these 2-6h late, so runs land around 6am/6pm
   workflow_dispatch:
 
 permissions:

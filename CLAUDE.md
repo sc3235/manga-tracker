@@ -53,7 +53,7 @@ Python script that checks a set of Japanese manga pages on a schedule and sends 
 
 ## GitHub Actions
 
-- `.github/workflows/check.yml` ("Check chapters"), cron twice daily at 10:23/22:23 UTC ≈ 6:23am/6:23pm New York (5:23am/5:23pm in winter; minute 23 avoids top-of-hour scheduling delays; scheduled runs can still start hours late), plus `workflow_dispatch`.
+- `.github/workflows/check.yml` ("Check chapters"), cron twice daily at 05:23/19:23 UTC ≈ 1:23am/3:23pm New York (12:23am/2:23pm in winter). Scheduled early on purpose: in late Sep/early Oct 2026, GitHub started runs ~4.5–6.5h late in the morning slot and ~2.5–3.5h late in the evening slot, so actual runs land around 6am/6pm. Minute 23 avoids top-of-hour congestion but did not reduce the delay., plus `workflow_dispatch`.
 - `permissions: contents: write`; commit `state.json` and `README.md` only when they changed.
 - `NTFY_TOPIC` from repository secrets.
 - Known risks: scheduled runs can be delayed; GitHub disables schedules after 60 days of no repo activity (state commits usually prevent this); some sites may block GitHub runner IPs. If a site blocks, note it in this file.
