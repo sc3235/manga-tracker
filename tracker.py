@@ -2,6 +2,7 @@
 
 import argparse
 import calendar
+import html
 import json
 import os
 import re
@@ -33,6 +34,7 @@ DELAY_BETWEEN_SITES = 2
 JST = ZoneInfo("Asia/Tokyo")
 DISPLAY_TZ = ZoneInfo("America/New_York")  # for "Last checked" in the README
 HISTORY_FOR_ESTIMATE = 8  # recent release dates used to estimate the next one
+OVERDUE_GRACE_DAYS = 7  # next dates only count as overdue this long after the date
 
 
 def get(url):
@@ -263,56 +265,73 @@ def save_state(state):
     )
 
 
-def md_escape(text):
-    return text.replace("|", "\\|").replace("[", "\\[").replace("]", "\\]")
-
-
 def short_date(iso):
-    """2026-09-05 -> 260905 (keeps the README table narrow on small screens)."""
-    return date.fromisoformat(iso).strftime("%y%m%d")
+    """2026-09-05 -> <code>260905</code>: narrow on small screens, monospace so dates line up."""
+    return f"<code>{date.fromisoformat(iso).strftime('%y%m%d')}</code>"
+
+
+def is_overdue(chapter, today):
+    """Overdue once the next date is more than a grace period in the past.
+
+    Applies to fixed schedules too: they slip (holidays) or skip months.
+    """
+    nxt = (chapter or {}).get("next")
+    if nxt is None:
+        return False
+    return date.fromisoformat(nxt) + timedelta(days=OVERDUE_GRACE_DAYS) < today
 
 
 def write_readme(sites, state, failed):
     """Rewrite the status table between the markers in README.md."""
-    today = datetime.now(JST).date().isoformat()
-    rows = ["| Series | Last | Released | Next |", "|---|---|---|---|"]
+    today = datetime.now(JST).date()
+    # HTML rather than a Markdown table so the overdue divider can span all columns.
+    rows = ["<table>", "<tr>" + "".join(f'<th align="left">{h}</th>' for h in ["Series", "Last", "Released", "Next"]) + "</tr>"]
 
     def sort_key(key):
         # Upcoming by date, then unknown, then overdue at the bottom.
         nxt = (state.get(key) or {}).get("next")
         if nxt is None:
             return (1, "")
-        return (2 if nxt < today else 0, nxt)
+        return (2 if is_overdue(state[key], today) else 0, nxt)
 
+    def divider(label):
+        return f'<tr><td colspan="4" align="center"><sub>{label}</sub></td></tr>'
+
+    group = None
     for key in sorted(sites, key=sort_key):
         site = sites[key]
-        name = md_escape(site["name"])
+        name = html.escape(site["name"])
         if key in failed:
             name += " ⚠️"
         chapter = state.get(key)
+        late = is_overdue(chapter, today)
+        if late != group:
+            rows.append(divider("over a week late" if late else "on schedule"))
+            group = late
         if chapter is None:
-            rows.append(f"| {name} | — | — | — |")
+            rows.append(f"<tr><td>{name}</td><td>—</td><td>—</td><td>—</td></tr>")
             continue
         title = chapter["title"].replace(site["name"], "").strip() or chapter["title"]
-        latest = f"[{md_escape(title)}]({chapter['url']})"
+        latest = f'<a href="{html.escape(chapter["url"])}">{html.escape(title)}</a>'
         released = short_date(chapter["date"]) if chapter.get("date") else "—"
         nxt = "—"
         if chapter.get("next"):
-            if chapter["next"] < today:
+            if is_overdue(chapter, today):
                 marker = "🔴"
             elif chapter.get("next_is_estimate"):
                 marker = "🟡"
             else:
                 marker = "🟢"
             # Non-breaking space keeps the date and marker on one line.
-            nxt = f"{short_date(chapter['next'])}\u00a0{marker}"
-        rows.append(f"| {name} | {latest} | {released} | {nxt} |")
+            nxt = f"{short_date(chapter['next'])}&nbsp;{marker}"
+        rows.append(f"<tr><td>{name}</td><td>{latest}</td><td>{released}</td><td>{nxt}</td></tr>")
+    rows.append("</table>")
 
     checked = datetime.now(DISPLAY_TZ).strftime("%Y-%m-%d %H:%M %Z")
     notes = [
         "",
         f"_Last checked: {checked}. Dates are JST. Next: 🟢 = fixed schedule; "
-        "🟡 = estimated from recent release gaps; 🔴 = overdue. ⚠️ = check failed this run._",
+        "🟡 = estimated from recent release gaps; 🔴 = over a week overdue. ⚠️ = check failed this run._",
     ]
     table = "\n".join(rows + notes)
 
