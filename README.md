@@ -15,5 +15,5 @@ Checks these series twice a day and sends an ntfy notification when a new chapte
 <tr><td>アフターゴッド</td><td><a href="https://manga-one.com/manga/1755/chapter/358291">第109話 人間</a></td><td><code>260909</code></td><td><code>260923</code>&nbsp;🔴</td></tr>
 </table>
 
-_Last checked: 2026-10-04 19:19 EDT. Dates are JST. Next: 🟢 = fixed schedule; 🟡 = estimated from recent release gaps; 🔴 = over a week overdue; ✅ = series finished. ⚠️ = check failed this run._
+_Last checked: 2026-10-05 08:22 EDT. Dates are JST. Next: 🟢 = fixed schedule; 🟡 = estimated from recent release gaps; 🔴 = over a week overdue; ✅ = series finished. ⚠️ = check failed this run._
 <!-- status:end -->
