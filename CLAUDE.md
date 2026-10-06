@@ -24,7 +24,6 @@ Python script that checks a set of Japanese manga pages on a schedule and sends 
 | 煙たい話 | comicnettai.com | HTML scrape; newest chapter listed first (e.g. "第49話 … 2026.09.04") | https://www.comicnettai.com/book/9 |
 | 天幕のジャードゥーガル | souffle.life | RSS (WordPress author feed). Updates on the 25th monthly. | https://souffle.life/author/tenmaku-no-ja-dougal/feed/ |
 | 光が死んだ夏 | comic-walker.com | HTML scrape; episode list is server-rendered, newest first (e.g. "第49話-3", 2026/09/01). Episode IDs like `KC_0015710005000031_E`. | https://comic-walker.com/detail/KC_001571_S |
-| アフターゴッド | manga-one.com | Internal protobuf API (see Findings). | https://manga-one.com/manga/1755 |
 
 ## Findings (2026-09-28)
 

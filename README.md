@@ -11,8 +11,6 @@ Checks these series twice a day and sends an ntfy notification when a new chapte
 <tr><td>光が死んだ夏</td><td><a href="https://comic-walker.com/detail/KC_001571_S/episodes/KC_0015710005000031_E">第49話-3</a></td><td><code>260901</code></td><td><code>261013</code>&nbsp;🟢</td></tr>
 <tr><td>天幕のジャードゥーガル</td><td><a href="https://souffle.life/manga/tenmaku-no-ja-dougal/tenmaku045-20260925/">#45</a></td><td><code>260925</code></td><td><code>261025</code>&nbsp;🟢</td></tr>
 <tr><td>ひらやすみ</td><td><a href="https://bigcomics.jp/episodes/b4c84ace68711/">102日目 春らんまん</a></td><td><code>261005</code></td><td><code>261102</code>&nbsp;🟡</td></tr>
-<tr><td colspan="4" align="center"><sub>over a week late</sub></td></tr>
-<tr><td>アフターゴッド</td><td><a href="https://manga-one.com/manga/1755/chapter/358291">第109話 人間</a></td><td><code>260909</code></td><td><code>260923</code>&nbsp;🔴</td></tr>
 </table>
 
 _Last checked: 2026-10-05 20:52 EDT. Dates are JST. Next: 🟢 = fixed schedule; 🟡 = estimated from recent release gaps; 🔴 = over a week overdue; ✅ = series finished. ⚠️ = check failed this run._
