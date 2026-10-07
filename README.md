@@ -13,5 +13,5 @@ Checks these series twice a day and sends an ntfy notification when a new chapte
 <tr><td>ひらやすみ</td><td><a href="https://bigcomics.jp/episodes/b4c84ace68711/">102日目 春らんまん</a></td><td><code>261005</code></td><td><code>261102</code>&nbsp;🟡</td></tr>
 </table>
 
-_Last checked: 2026-10-07 07:51 EDT. Dates are JST. Next: 🟢 = fixed schedule; 🟡 = estimated from recent release gaps; 🔴 = over a week overdue; ✅ = series finished. ⚠️ = check failed this run._
+_Last checked: 2026-10-07 19:37 EDT. Dates are JST. Next: 🟢 = fixed schedule; 🟡 = estimated from recent release gaps; 🔴 = over a week overdue; ✅ = series finished. ⚠️ = check failed this run._
 <!-- status:end -->
