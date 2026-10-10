@@ -14,5 +14,5 @@ Checks these series twice a day and sends an ntfy notification when a new chapte
 <tr><td>煙たい話</td><td><a href="https://www.comicnettai.com/book/9">第49話</a></td><td><code>260904</code></td><td><code>261002</code>&nbsp;🔴</td></tr>
 </table>
 
-_Last checked: 2026-10-09 19:19 EDT. Dates are JST. Next: 🟢 = fixed schedule; 🟡 = estimated from recent release gaps; 🔴 = over a week overdue; ✅ = series finished. ⚠️ = check failed this run._
+_Last checked: 2026-10-10 07:14 EDT. Dates are JST. Next: 🟢 = fixed schedule; 🟡 = estimated from recent release gaps; 🔴 = over a week overdue; ✅ = series finished. ⚠️ = check failed this run._
 <!-- status:end -->
