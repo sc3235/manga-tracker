@@ -38,5 +38,13 @@
     "date": "2026-09-01",
     "next": "2026-10-13",
     "next_is_estimate": false
+  },
+  "ball-and-chain": {
+    "id": "149839",
+    "title": "第23話",
+    "url": "https://shuro.world/episode/149839/",
+    "date": "2026-09-18",
+    "next": "2026-10-18",
+    "next_is_estimate": true
   }
 }
