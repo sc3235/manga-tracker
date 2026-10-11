@@ -130,6 +130,30 @@ def fetch_comicwalker(site):
     return chapter, dates
 
 
+def fetch_shuro(site):
+    # WordPress series page. The episode list only shows the newest episode
+    # plus the free first ones, so pick the newest by post ID; its date is the
+    # page's "最終更新" (no history, hence the monthly schedule in sites.json).
+    soup = BeautifulSoup(get(site["url"]).text, "html.parser")
+    episodes = []
+    for a in soup.select('a[href*="/episode/"]'):
+        match = re.search(r"/episode/(\d+)/", a["href"])
+        if match:
+            episodes.append((int(match.group(1)), a))
+    if not episodes:
+        raise ValueError("no episodes found")
+    post_id, a = max(episodes, key=lambda e: e[0])
+    updated = re.search(r"最終更新:\s*(\d{4})年(\d{1,2})月(\d{1,2})日", soup.get_text())
+    released = date(*map(int, updated.groups())).isoformat() if updated else None
+    chapter = {
+        "id": str(post_id),
+        "title": a.get_text(strip=True),
+        "url": a["href"],
+        "date": released,
+    }
+    return chapter, [released] if released else []
+
+
 def decode_protobuf(data):
     """Minimal protobuf wire-format decoder: {field_number: [values]}.
 
@@ -199,6 +223,7 @@ FETCHERS = {
     "comicnettai": fetch_comicnettai,
     "comicwalker": fetch_comicwalker,
     "mangaone": fetch_mangaone,
+    "shuro": fetch_shuro,
 }
 
 
@@ -224,6 +249,8 @@ def estimate_next(site, history):
       {"weekday": "fri", "nth": 1}  -> first Friday of each month
       {"dates": ["2026-10-13"]}     -> announced dates; once all have passed,
                                        falls back to the estimate below
+      {"monthly": true}             -> roughly monthly, no fixed day: latest
+                                       date + 1 month, shown as an estimate
     Otherwise: latest date + median gap between recent releases.
     """
     if not history:
@@ -236,6 +263,11 @@ def estimate_next(site, history):
         if upcoming:
             return upcoming[0], False
         schedule = None
+
+    if schedule and schedule.get("monthly"):
+        year, month = next_month(last)
+        day = min(last.day, calendar.monthrange(year, month)[1])
+        return date(year, month, day).isoformat(), True
 
     if schedule:
         year, month = last.year, last.month

@@ -37,5 +37,13 @@
       ]
     },
     "final": "2026-10-20"
+  },
+  "ball-and-chain": {
+    "name": "ボールアンドチェイン",
+    "type": "shuro",
+    "url": "https://shuro.world/manga/ballandchain/",
+    "schedule": {
+      "monthly": true
+    }
   }
 }
