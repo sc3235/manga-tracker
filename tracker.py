@@ -125,6 +125,24 @@ def fetch_shuro(site):
     return chapter, [released] if released else []
 
 
+def fetch_comicaction(site):
+    # RSS for the chapter. The latest episode page announces when it turns
+    # free ("2026年10月20日に無料公開予定"), which is the day the next chapter
+    # comes out, so use that as the next release instead of estimating.
+    chapter, dates = fetch_rss(site)
+    try:
+        page = get(chapter["url"]).text
+    except requests.RequestException as e:
+        print(f"[comicaction] could not read free date, estimating instead: {e!r}", file=sys.stderr)
+        return chapter, dates
+    free = re.search(r"(\d{4})年(\d{1,2})月(\d{1,2})日に無料公開予定", page)
+    if free:
+        free_date = date(*map(int, free.groups())).isoformat()
+        if not chapter["date"] or free_date > chapter["date"]:
+            chapter["next"], chapter["next_is_estimate"] = free_date, False
+    return chapter, dates
+
+
 def decode_protobuf(data):
     """Minimal protobuf wire-format decoder: {field_number: [values]}.
 
@@ -194,6 +212,7 @@ FETCHERS = {
     "comicnettai": fetch_comicnettai,
     "mangaone": fetch_mangaone,
     "shuro": fetch_shuro,
+    "comicaction": fetch_comicaction,
 }
 
 
@@ -412,7 +431,8 @@ def main():
             failed.add(key)
             print(f"[{key}] ERROR: {e!r}", file=sys.stderr)
             continue
-        chapter["next"], chapter["next_is_estimate"] = estimate_next(site, history)
+        if not chapter.get("next"):  # a fetcher may already know the announced date
+            chapter["next"], chapter["next_is_estimate"] = estimate_next(site, history)
 
         if args.dry_run:
             nxt = ("~" if chapter["next_is_estimate"] else "") + str(chapter["next"])
