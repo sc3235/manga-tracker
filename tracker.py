@@ -101,35 +101,6 @@ def fetch_comicnettai(site):
     return chapter, dates
 
 
-def fetch_comicwalker(site):
-    # Next.js page; the episode list is in the embedded __NEXT_DATA__ JSON.
-    # updateDate is unreliable for old episodes (they get re-dated), so order
-    # by episode number and only use the newest ones' dates.
-    soup = BeautifulSoup(get(site["url"]).text, "html.parser")
-    data = json.loads(soup.find("script", id="__NEXT_DATA__").string)
-    episodes = []
-    for query in data["props"]["pageProps"]["dehydratedState"]["queries"]:
-        q = query["state"]["data"]
-        if isinstance(q, dict) and "latestEpisodes" in q:
-            episodes = [e for e in q["latestEpisodes"]["result"] if e.get("isActive")]
-    if not episodes:
-        raise ValueError("no episodes found in __NEXT_DATA__")
-    episodes.sort(key=lambda e: e["internal"]["episodeNo"], reverse=True)
-    dates = [
-        to_jst_date(datetime.fromisoformat(e["updateDate"].replace("Z", "+00:00")))
-        for e in episodes[:HISTORY_FOR_ESTIMATE]
-    ]
-    latest = episodes[0]
-    work_code = site["url"].rstrip("/").rsplit("/", 1)[-1]
-    chapter = {
-        "id": latest["code"],
-        "title": latest["title"],
-        "url": f"https://comic-walker.com/detail/{work_code}/episodes/{latest['code']}",
-        "date": dates[0],
-    }
-    return chapter, dates
-
-
 def fetch_shuro(site):
     # WordPress series page. The episode list only shows the newest episode
     # plus the free first ones, so pick the newest by post ID; its date is the
@@ -221,7 +192,6 @@ def fetch_mangaone(site):
 FETCHERS = {
     "rss": fetch_rss,
     "comicnettai": fetch_comicnettai,
-    "comicwalker": fetch_comicwalker,
     "mangaone": fetch_mangaone,
     "shuro": fetch_shuro,
 }

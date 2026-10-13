@@ -7,7 +7,6 @@ Checks these series twice a day and sends an ntfy notification when a new chapte
 <tr><th align="left">Series</th><th align="left">Last</th><th align="left">Released</th><th align="left">Next</th></tr>
 <tr><td colspan="4" align="center"><sub>on schedule</sub></td></tr>
 <tr><td>ボールアンドチェイン</td><td><a href="https://shuro.world/episode/149839/">第23話</a></td><td><code>260918</code></td><td><code>261018</code>&nbsp;🟡</td></tr>
-<tr><td>光が死んだ夏</td><td><a href="https://comic-walker.com/detail/KC_001571_S/episodes/KC_0015710005100011_E">第50話</a></td><td><code>261013</code></td><td><code>261020</code>&nbsp;🟢</td></tr>
 <tr><td>天幕のジャードゥーガル</td><td><a href="https://souffle.life/manga/tenmaku-no-ja-dougal/tenmaku045-20260925/">#45</a></td><td><code>260925</code></td><td><code>261025</code>&nbsp;🟢</td></tr>
 <tr><td>ホストと社畜</td><td><a href="https://comic-action.com/episode/12207421984213076736">第54話 と一年間</a></td><td><code>261006</code></td><td><code>261027</code>&nbsp;🟡</td></tr>
 <tr><td>ひらやすみ</td><td><a href="https://bigcomics.jp/episodes/b4c84ace68711/">102日目 春らんまん</a></td><td><code>261005</code></td><td><code>261102</code>&nbsp;🟡</td></tr>

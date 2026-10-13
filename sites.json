@@ -26,18 +26,6 @@
       "day": 25
     }
   },
-  "hikaru-ga-shinda-natsu": {
-    "name": "光が死んだ夏",
-    "type": "comicwalker",
-    "url": "https://comic-walker.com/detail/KC_001571_S",
-    "schedule": {
-      "dates": [
-        "2026-10-13",
-        "2026-10-20"
-      ]
-    },
-    "final": "2026-10-20"
-  },
   "ball-and-chain": {
     "name": "ボールアンドチェイン",
     "type": "shuro",
