@@ -8,7 +8,6 @@ Checks these series twice a day and sends an ntfy notification when a new chapte
 <tr><td colspan="4" align="center"><sub>on schedule</sub></td></tr>
 <tr><td>ボールアンドチェイン</td><td><a href="https://shuro.world/episode/149839/">第23話</a></td><td><code>260918</code></td><td><code>261018</code>&nbsp;🟡</td></tr>
 <tr><td>天幕のジャードゥーガル ⚠️</td><td><a href="https://souffle.life/manga/tenmaku-no-ja-dougal/tenmaku045-20260925/">#45</a></td><td><code>260925</code></td><td><code>261025</code>&nbsp;🟢</td></tr>
-<tr><td>ひらやすみ ⚠️</td><td><a href="https://bigcomics.jp/episodes/b4c84ace68711/">102日目 春らんまん</a></td><td><code>261005</code></td><td><code>261102</code>&nbsp;🟡</td></tr>
 <tr><td>ホストと社畜</td><td><a href="https://comic-action.com/episode/12207421984308701906">第55話 社畜とお隣さんと迷い猫</a></td><td><code>261020</code></td><td><code>261103</code>&nbsp;🟢</td></tr>
 <tr><td colspan="4" align="center"><sub>over a week late</sub></td></tr>
 <tr><td>煙たい話</td><td><a href="https://www.comicnettai.com/book/9">第49話</a></td><td><code>260904</code></td><td><code>261002</code>&nbsp;🔴</td></tr>

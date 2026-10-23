@@ -19,7 +19,6 @@ Python script that checks a set of Japanese manga pages on a schedule and sends 
 
 | Series | Site | Strategy | URL to watch |
 |---|---|---|---|
-| ひらやすみ | bigcomics.jp | RSS | https://bigcomics.jp/series/8082b80580bd3/rss |
 | ホストと社畜 | comic-action.com | RSS + episode page for next date (`comicaction`) | https://comic-action.com/rss/series/2550689798598882943 |
 | 煙たい話 | comicnettai.com | HTML scrape; newest chapter listed first (e.g. "第49話 … 2026.09.04") | https://www.comicnettai.com/book/9 |
 | 天幕のジャードゥーガル | souffle.life | RSS (WordPress author feed). Updates on the 25th monthly. | https://souffle.life/author/tenmaku-no-ja-dougal/feed/ |
@@ -60,7 +59,7 @@ Python script that checks a set of Japanese manga pages on a schedule and sends 
 
 ## Build order
 
-1. `tracker.py` skeleton + RSS fetcher + `--dry-run`, verify the two RSS sites.
+1. `tracker.py` skeleton + RSS fetcher + `--dry-run`, verify the two RSS sites (bigcomics / ひらやすみ removed 2026-10-23: the site started returning 403 to non-Japanese IPs, so GitHub runners were blocked; it needs a Japan VPN).
 2. comicnettai, souffle, comicwalker scrapers (comic-walker / 光が死んだ夏 removed 2026-10-13; tracked in its app instead).
 3. ntfy notifications + state handling.
 4. GitHub Actions workflow.
