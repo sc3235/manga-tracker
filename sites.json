@@ -18,7 +18,10 @@
     "type": "rss",
     "url": "https://souffle.life/author/tenmaku-no-ja-dougal/feed/",
     "schedule": {
-      "day": 25
+      "day": 25,
+      "dates": [
+        "2026-11-25"
+      ]
     }
   },
   "ball-and-chain": {

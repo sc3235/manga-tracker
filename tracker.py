@@ -35,6 +35,7 @@ JST = ZoneInfo("Asia/Tokyo")
 DISPLAY_TZ = ZoneInfo("America/New_York")  # for "Last checked" in the README
 HISTORY_FOR_ESTIMATE = 8  # recent release dates used to estimate the next one
 OVERDUE_GRACE_DAYS = 7  # next dates only count as overdue this long after the date
+CHECK_DAYS_BEFORE = 1  # fixed next dates: start checking this many days before
 
 
 def get(url):
@@ -237,7 +238,9 @@ def estimate_next(site, history):
       {"day": 25}                   -> the 25th of each month
       {"weekday": "fri", "nth": 1}  -> first Friday of each month
       {"dates": ["2026-10-13"]}     -> announced dates; once all have passed,
-                                       falls back to the estimate below
+                                       falls back to the other schedule keys
+                                       (e.g. {"day": 25, "dates": [...]}) or,
+                                       without any, the estimate below
       {"monthly": true}             -> roughly monthly, no fixed day: latest
                                        date + 1 month, shown as an estimate
     Otherwise: latest date + median gap between recent releases.
@@ -251,7 +254,7 @@ def estimate_next(site, history):
         upcoming = sorted(d for d in schedule["dates"] if date.fromisoformat(d) > last)
         if upcoming:
             return upcoming[0], False
-        schedule = None
+        schedule = {k: v for k, v in schedule.items() if k != "dates"} or None
 
     if schedule and schedule.get("monthly"):
         year, month = next_month(last)
@@ -317,7 +320,26 @@ def is_completed(site, chapter):
     return bool(final and released and released >= final)
 
 
-def write_readme(sites, state, failed):
+def refresh_fixed_next(site, chapter):
+    """Recompute a schedule-based next date from the stored chapter.
+
+    Picks up sites.json schedule edits on runs that skip fetching. Only
+    fixed dates are updated; estimates need the full release history.
+    """
+    if site.get("schedule") and chapter.get("date"):
+        nxt, is_estimate = estimate_next(site, [chapter["date"]])
+        if nxt and not is_estimate:
+            chapter["next"], chapter["next_is_estimate"] = nxt, False
+
+
+def can_skip(chapter, today):
+    """True while a fixed next date is still more than CHECK_DAYS_BEFORE away."""
+    if not chapter or not chapter.get("next") or chapter.get("next_is_estimate"):
+        return False
+    return today < date.fromisoformat(chapter["next"]) - timedelta(days=CHECK_DAYS_BEFORE)
+
+
+def write_readme(sites, state, failed, skipped=()):
     """Rewrite the status table between the markers in README.md."""
     today = datetime.now(JST).date()
     # HTML rather than a Markdown table so the overdue divider can span all columns.
@@ -343,6 +365,8 @@ def write_readme(sites, state, failed):
         name = html.escape(site["name"])
         if key in failed:
             name += " ⚠️"
+        elif key in skipped:
+            name += " 💤"
         chapter = state.get(key)
         if status(key) != group:
             group = status(key)
@@ -373,7 +397,8 @@ def write_readme(sites, state, failed):
     notes = [
         "",
         f"_Last checked: {checked}. Dates are JST. Next: 🟢 = fixed schedule; "
-        "🟡 = estimated from recent release gaps; 🔴 = over a week overdue; ✅ = series finished. ⚠️ = check failed this run._",
+        "🟡 = estimated from recent release gaps; 🔴 = over a week overdue; ✅ = series finished. ⚠️ = check failed this run; "
+        "💤 = not checked (fixed next date still more than a day away)._",
     ]
     table = "\n".join(rows + notes)
 
@@ -420,11 +445,23 @@ def main():
         sys.exit("NTFY_TOPIC is not set (use --dry-run to test without it)")
 
     state = load_json(STATE_FILE, {})
-    failed = set()
+    failed, skipped = set(), set()
+    today = datetime.now(JST).date()
+    fetched = 0
 
-    for i, (key, site) in enumerate(sites.items()):
-        if i:
+    for key, site in sites.items():
+        # Sites with a fixed next date only need checking from the day before.
+        # --dry-run and --only always fetch, since they're for debugging.
+        previous = state.get(key)
+        if previous and not args.dry_run and not args.only:
+            refresh_fixed_next(site, previous)
+            if can_skip(previous, today):
+                skipped.add(key)
+                print(f"[{key}] skipped until the day before {previous['next']}")
+                continue
+        if fetched:
             time.sleep(DELAY_BETWEEN_SITES)
+        fetched += 1
         try:
             chapter, history = FETCHERS[site["type"]](site)
         except Exception as e:
@@ -440,7 +477,6 @@ def main():
                   f"\n    id={chapter['id']}\n    {chapter['url']}")
             continue
 
-        previous = state.get(key)
         if previous is None:
             print(f"[{key}] first run, recording {chapter['title']}")
         elif previous["id"] != chapter["id"]:
@@ -457,7 +493,7 @@ def main():
 
     if not args.dry_run:
         save_state(state)
-        write_readme(all_sites, state, failed)
+        write_readme(all_sites, state, failed, skipped)
 
     if sites and len(failed) == len(sites):
         sys.exit(1)
