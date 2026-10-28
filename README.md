@@ -13,5 +13,5 @@ Checks these series twice a day and sends an ntfy notification when a new chapte
 <tr><td>ボールアンドチェイン</td><td><a href="https://shuro.world/episode/149839/">第23話</a></td><td><code>260918</code></td><td><code>261018</code>&nbsp;🔴</td></tr>
 </table>
 
-_Last checked: 2026-10-27 19:00 EDT. Dates are JST. Next: 🟢 = fixed schedule; 🟡 = estimated from recent release gaps; 🔴 = over a week overdue; ✅ = series finished. ⚠️ = check failed this run; 💤 = not checked (fixed next date still more than a day away)._
+_Last checked: 2026-10-28 07:25 EDT. Dates are JST. Next: 🟢 = fixed schedule; 🟡 = estimated from recent release gaps; 🔴 = over a week overdue; ✅ = series finished. ⚠️ = check failed this run; 💤 = not checked (fixed next date still more than a day away)._
 <!-- status:end -->
