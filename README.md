@@ -6,12 +6,12 @@ Checks these series twice a day and sends an ntfy notification when a new chapte
 <table>
 <tr><th align="left">Series</th><th align="left">Last</th><th align="left">Released</th><th align="left">Next</th></tr>
 <tr><td colspan="4" align="center"><sub>on schedule</sub></td></tr>
-<tr><td>天幕のジャードゥーガル</td><td><a href="https://souffle.life/manga/tenmaku-no-ja-dougal/tenmaku045-20260925/">#45</a></td><td><code>260925</code></td><td><code>261125</code>&nbsp;🟢</td></tr>
 <tr><td>ホストと社畜 💤</td><td><a href="https://comic-action.com/episode/12207421984440039136">第57話 とダイエット</a></td><td><code>261117</code></td><td><code>261201</code>&nbsp;🟢</td></tr>
 <tr><td>煙たい話 💤</td><td><a href="https://www.comicnettai.com/book/9">第50話</a></td><td><code>261106</code></td><td><code>261204</code>&nbsp;🟢</td></tr>
+<tr><td>天幕のジャードゥーガル</td><td><a href="https://souffle.life/manga/tenmaku-no-ja-dougal/tenmaku046-20261125/">#46</a></td><td><code>261125</code></td><td><code>261225</code>&nbsp;🟢</td></tr>
 <tr><td colspan="4" align="center"><sub>over a week late</sub></td></tr>
 <tr><td>ボールアンドチェイン</td><td><a href="https://shuro.world/episode/149839/">第23話</a></td><td><code>260918</code></td><td><code>261018</code>&nbsp;🔴</td></tr>
 </table>
 
-_Last checked: 2026-11-24 10:59 EST. Dates are JST. Next: 🟢 = fixed schedule; 🟡 = estimated from recent release gaps; 🔴 = over a week overdue; ✅ = series finished. ⚠️ = check failed this run; 💤 = not checked (fixed next date still more than a day away)._
+_Last checked: 2026-11-24 22:04 EST. Dates are JST. Next: 🟢 = fixed schedule; 🟡 = estimated from recent release gaps; 🔴 = over a week overdue; ✅ = series finished. ⚠️ = check failed this run; 💤 = not checked (fixed next date still more than a day away)._
 <!-- status:end -->
